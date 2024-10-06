@@ -8,9 +8,9 @@ namespace Arkanoid
     {
         #region Variables
 
-        [SerializeField] private Button _levelButtonPrefab;
-        [SerializeField] private HorizontalLayoutGroup _levelSelector;
+        [SerializeField] private Button _startButton;
         [SerializeField] private Button _exitButton;
+
         [SerializeField] private AudioClip _menuTheme;
 
         #endregion
@@ -21,6 +21,9 @@ namespace Arkanoid
         {
             AudioService.Instance.StopAll();
             AudioService.Instance.PlaySfx(_menuTheme);
+            
+            _startButton.onClick.AddListener(StartButtonClickedCallback);
+            _exitButton.onClick.AddListener(ExitButtonClickedCallback);
         }
 
         #endregion
@@ -30,6 +33,11 @@ namespace Arkanoid
         public void ExitButtonClickedCallback()
         {
             SceneLoaderService.Instance.ExitGame();
+        }
+        
+        public void StartButtonClickedCallback()
+        {
+            SceneLoaderService.Instance.LoadGameScene();
         }
 
         #endregion
