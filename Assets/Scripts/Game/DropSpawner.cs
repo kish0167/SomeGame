@@ -1,9 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Services;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace Game
@@ -13,10 +14,31 @@ namespace Game
         #region Variables
 
         [SerializeField] private List<PickUpAndProbability> _pickUpsVariants;
+        [SerializeField] private float _baseSpawnRate = 2f;
+        [SerializeField] private float _spawnRateGain = 15f;
+        [SerializeField] private float _spawnRateGainDelay = 2f;
+
+        [SerializeField] private float _spawnRate;
+
+        #endregion
+
+        #region Unity lifecycle
+
+        private void Start()
+        {
+            _spawnRate = _baseSpawnRate;
+            StartSpawning();
+            StartIncreasingSpawnRate();
+        }
 
         #endregion
 
         #region Private methods
+
+        private float GetRandomDelayBasedOnRate()
+        {
+            return Random.Range(1f / _spawnRate, 2f / _spawnRate);
+        }
 
         private Drop GetRandomDrop()
         {
@@ -50,12 +72,40 @@ namespace Game
             vector3.x += randomShiftX;
             return vector3;
         }
-    
+
+        private IEnumerator IncreaseSpawnrate()
+        {
+            yield return new WaitForSeconds(_spawnRateGainDelay);
+            _spawnRate *= _spawnRateGain/100f + 1;
+            StartCoroutine(IncreaseSpawnrate());
+        }
+
         [Button]
         private void SpawnDrop()
         {
             Drop dropPrefab = GetRandomDrop();
             Instantiate(dropPrefab, GetRandomPos(), quaternion.identity);
+        }
+
+        private IEnumerator SpawnWithDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (GameService.Instance.IsGameOver)
+            {
+                yield break;
+            }
+            SpawnDrop();
+            StartCoroutine(SpawnWithDelay(GetRandomDelayBasedOnRate()));
+        }
+
+        private void StartIncreasingSpawnRate()
+        {
+            StartCoroutine(IncreaseSpawnrate());
+        }
+
+        private void StartSpawning()
+        {
+            StartCoroutine(SpawnWithDelay(GetRandomDelayBasedOnRate()));
         }
 
         #endregion
@@ -75,5 +125,7 @@ namespace Game
         }
 
         #endregion
+
+        //private float _timeToNext;
     }
 }

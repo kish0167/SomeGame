@@ -115,7 +115,6 @@ namespace Services
         private void GameOver()
         {
             IsGameOver = true;
-            Instance.ResetScore();
             AudioService.Instance.PlaySfx(_gameOverSfx);
             OnGameOver?.Invoke();
         }
